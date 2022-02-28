@@ -22,6 +22,18 @@ def roll_dice(num_rolls, dice=six_sided):
     assert type(num_rolls) == int, 'num_rolls must be an integer.'
     assert num_rolls > 0, 'Must roll at least once.'
     "*** YOUR CODE HERE ***"
+    rolls = 0
+    i = 0
+    while i < num_rolls:
+        dice_roll = dice()
+        if dice_roll != 1:
+            rolls += dice_roll
+        else:
+            rolls = 1
+            return rolls
+            break
+        i += 1
+    return rolls
 
 
 def take_turn(num_rolls, opponent_score, dice=six_sided):
@@ -36,6 +48,17 @@ def take_turn(num_rolls, opponent_score, dice=six_sided):
     assert num_rolls <= 10, 'Cannot roll more than 10 dice.'
     assert opponent_score < 100, 'The game should be over.'
     "*** YOUR CODE HERE ***"
+    if num_rolls == 0:
+        def max_digit(score):
+            score, digit_find = score // 10, score % 10
+            while score >= 10:
+                score, last = score // 10, score % 10
+                if last > digit_find:
+                    digit_find = last
+            return digit_find
+        return max_digit(opponent_score) + 1
+    else:
+        return roll_dice(num_rolls, dice)
 
 # Playing a game
 
@@ -51,6 +74,11 @@ def select_dice(score, opponent_score):
     True
     """
     "*** YOUR CODE HERE ***"
+    divided_by_seven = (score + opponent_score) % 7 == 0
+    if divided_by_seven:
+        return four_sided
+    else:
+        return six_sided
 
 def other(who):
     """Return the other player, for a player WHO numbered 0 or 1.
@@ -76,6 +104,22 @@ def play(strategy0, strategy1, goal=GOAL_SCORE):
     who = 0  # Which player is about to take a turn, 0 (first) or 1 (second)
     score, opponent_score = 0, 0
     "*** YOUR CODE HERE ***"
+    while score <= 100 and opponent_score <= 100:
+        if who == 0:
+            score += take_turn(strategy0(score, opponent_score), opponent_score, select_dice(score, opponent_score))
+            if score != 0 and opponent_score != 0:
+                if score % opponent_score == 0 and score // opponent_score == 2:
+                    score, opponent_score = opponent_score, score
+                elif opponent_score % score == 0 and opponent_score // score == 2:
+                    score, opponent_score = opponent_score, score
+        else:
+            opponent_score += take_turn(strategy1(opponent_score, score), score, select_dice(score, opponent_score))
+            if score != 0 and opponent_score != 0:
+                if score % opponent_score == 0 and score // opponent_score == 2:
+                    score, opponent_score = opponent_score, score
+                elif opponent_score % score == 0 and opponent_score // score == 2:
+                    score, opponent_score = opponent_score, score
+        who = other(who)
     return score, opponent_score  # You may wish to change this line.
 
 #######################
